@@ -1,0 +1,347 @@
+ParFlow Setup: 
+
+09092020: 
+	Issues - unable to set up environment
+		(module load error)
+		
+	Issue with names -
+
+09152020: 
+	Unsure exactly hot run the parking lot test
+		(is it already set up in the LW_Exercise2.tcl)
+
+		
+	Note that LW_Exercise1b is actually 
+		the totality of 
+		LW_Exercise2, 3, and 4.tcl
+		
+	Honestly I'm just sort of confused about how to modify these
+		files in a way that is productive. 
+		
+	next steps:
+		Download:
+					a) ParaView: https://paraview.org
+					b) Visit: http://www.llnl.gov/visit/
+					c) VTK: https://paraview.org
+					
+	Parking lot test:
+		I don't understand 
+			pfset Cycle.rainrec
+				.rain.Length
+				.rec.Length # this specifies the 
+				.rainrec.Repeat # this specifies the number of repeat cycles (but what is -1)
+				
+		What is the difference between
+			Cycle.Constant, 
+			and Cycle.RainRec
+			
+				Answer - I think these are cycle names that are defined
+					in the preceding key (pfset cycle.Names)
+				
+				
+				# create two cycles, constant and rainrec
+					# nb: space delimited lists
+					pfset Cycle.Names "constant rainrec"			
+					
+		What do the time steps really mean?
+			pfset Cycle.cycle_name.interval_name.Length (e.g. cycle.rainrec.rain.Length)
+				- Used to specify the length of a named timed interval.
+				- An integer multiplier of the value set for
+					*TimingInfo.BaseUnit*
+				- The total length of a given time cycle is the sum
+					of all the intervals multiplied by the base unit. 
+					
+				e.g., for a .Length of '1', that means the cycle repeats
+					every timestep
+					
+					for a .Length of '14', that means the cycle repeats
+					every '14' timesteps 
+						
+			See TimingInfo
+				* Note that the time units are set by the units of permeability
+					* how? (by default it seems like m / hr)
+					
+				Includes:
+					.BaseUnit
+					.StartCount
+					.StartTime
+					.StopTime
+					.DumpInterval
+					and others
+					
+09172020: 
+	mac (and bash) command line basics:
+		ls -lhrt (look at files and subs with more information )
+		man ls (look at the different types of 'ls')
+		man <command> (more description about a given bash command)
+		vi <file> (open up a given file in the terminal)
+			e.g. vi *.out.log (* is a wildcard, opens up the <RunName>.out.log file
+			[vi commands] (commands to run within vi]
+				:$ (scroll to bottom of the file within terminal)
+				:q! (quit the given file within terminal)
+		tail -n10 <file> (look at the last ten (or replace with another number) lines in a file)
+			e.g. tail -n20 *kinsol.log (returns the last 20 rows of the .kinsol.log file)
+		'vi .bash_profile' go to bash_profile
+		source - reads and executes commands from the file specified as its argument
+		export <varname=value> (export a local environment within a given run of Bash Profile)
+			e.g. export PARFLOW_SOURCE=/path/to/new/parflow/
+
+		What's the best way to...
+				a) Assessing output to see if it ran and pysics make sense: 
+					<RunName>.out.log - gives details about runtime (how long it took the model to each timestep)
+					<RunName>.out.kinsol.log 
+						- just keeps real-time tabs of the solver
+						- tracks not only timing, but number of iterations
+						- needed for model to solve
+							* look convergence in the fnorm (it should get smaller) /
+							WITHIN and BETWEEN steps * 
+								e.g. `5	fnorm` should be less than `0 fnorm` for step 1
+								AND `0 fnorm` for step 20 should be less than `0 fnorm` for step 1
+							* If model isn't converging, then the script will fail to run, and 
+							it will let you know. * 
+				
+								
+				b) Assessing output to see how it looks:
+					go to Paraview
+						.e.g ParaView-5.7.0-RC4.app
+						
+							Next Steps:
+								Figure out how to use PFTools, and rerun parking lot test a few times to understand results
+									Add a short document describing PFTools usage...
+									Look in the user manual?
+									
+								Look for differences in the output between the terrain following grid
+									and original script (LW_Exercise3)
+									
+								Add CLM things (LW_Excercise4)
+								
+								Initialize Subsurface and Spinup Model steps
+			
+		Next steps:
+			- Practice using ParaView to visualize:
+				Messing around with Parking Lot Test:
+					You don't see surface saturatino really till 4 steps (even 
+						if its raining the whole time)
+					Really interesting to look at an intermittent (ex 2 on, 2 off) rain
+						vs consistent rain (ex whole time period)
+						we see higher and higher pressures in the 'rivers', but oscillating
+							high and lows in the 
+					Mess around with 3D visualization
+			- See if I can followup with Abe to see if he has post-running visualization
+				Is there any way just to see the raw 'pressures' as like a .txt or .csv
+				Q: How do you look 3D?
+				Q: Still struggling with quantitative ways to look at the data
+				
+			- Mess around with the other scripts to do some basic hypothesis testing
+			- Amanda, June, Abe contact with questions
+			- Long-term Python from TCL
+			- Post to Slack info about the Union
+			
+		Next steps:
+			Q: I need to familiarize myself with the ways of setting up directories and environments for 
+				python and for ParFlow	
+				(Also need to understand generally)
+			Q: What is a patch? What is an API?
+			Q: I need to read through the user manual to get a more thorough understanding of how PFTools work
+			Q: I need to get the python add on to ParFlow to work 
+			Q: How do I get off this aktriplett problem!
+			
+			
+09232020: 
+	Prep Questions for Amanda Meeting:
+		Q0: Running Model...
+			a) change the start time
+				- It seem slike it always starts at 14 (why?)
+				- Or, its almost like the first cycle of rainrec (regardless of how long)
+					never shows up
+			b) get rid of SiloFiles
+				- Set 'write Silo Subsurface to FALSE
+	
+		Q1: Post-processing (using raw files)
+		A1: Use Python to ParFlow Tool 
+			Next Steps -> utilize python parflowio package following dude's steps
+
+			
+		Q2: How do you look at ParFlow in Paraview
+			# Don't sink much time figuring it out because we want to do post
+			# Do post processing in R and/or in Python and figure out how to do that. 
+			a) 3D (keep up the work)
+				- It actually IS 3D, but because the xy domain is so much larger than the depth domain, it is a bit tricky
+					- To set up viewing changes in pressure at multiple depths
+						1) Use the 'Subset' Filter to take only the 'highest' z values
+							(remember the z scale is inverted so bigger means closer to the surface)
+							
+							
+			b) Look at Parking Lot Test
+				- Test multiple times, with different durations of model and rain recs:
+					Q: It seem slike it always starts at 14 (why?)
+					A: It's not 14, its just that it skips the first rainrec cycle (for some reason)
+					Q: How long are the timesteps?
+					A: By default, each timestep is 1 hr
+					Q: If we are using a 'grid' that doesn't follow the terrain, then
+						how come we can see rivers, that follow the terrain?
+					A: We actually ARE using a terrain-following grid, and so every 'top' cell
+						represents the surface level (not a static elevation)
+					Q: How to use a contour and flow lines filter (seems super helpful!)
+					A: Nobody knows
+					
+			c) Look at runs where the surface isn't impermeable! 
+				- Exercise LW....2d
+			
+			Notes from Paraview Manual:
+				2.2 Sources can be used to look at run of the mill items
+				2.3 Basic 3D Interaction 
+					- xyz + 3D mode to look at item in different ways
+					- camera reset, zoom to data, zoom, reposition different access, rotate 90 degrees
+				2.4 Modify visualization Parameter
+					- nb (have option to save settings for similar object types
+					- Increase resolution, radius, center, etc.. (under properties, must click apply)
+					- Coloring (can change from solid to other settings (like TCoord) (under Display (Geometry Representation
+					- Styling
+					- Lighting
+					- Axis Grid
+					- etc...
+				2.4 Toggle auto apply for more rapid changes
+				2.5 Change Color Palatte (color palate)
+					- Not necessarily for ranges of data, but for solid color etc..
+				2.5 Loading Data
+					Using Open Command
+				X.X Look at information about a file (such as the range of data)
+					Using Information Tab (next to Properties Tab)
+				X.X Remove Layers by clicking the backspace button on them
+				2.6 Filters: (there are many others) 
+					Calculator (like Raster Calculator) 
+					Contour, Clip, Slice, Threshold, Extract Subset, Glyph
+					Stream Tracer, Warp, Group Datasets, Extract Level
+				2.10 Visualization Pipeline from which you can take a subset, and then run 
+					some other kind of analysis on it
+					
+					Continue on page 30 (if need be) 
+			
+					
+					
+		Q3: How do I set up and edit environments for python and parflow, how do I manage
+			manage environments better?
+
+			- Setup path to python3
+				- open a new git bash window and type 'vi .bash_profile'
+					vi ~ .bash_profile to set up your environments (for the computer)
+					(to view your bash profile) 
+					- Check to see that a pathway to python3 exists
+				- source bash_profile (source .bash_profile)
+			- Make environment for python ??
+				- Environments for Conda: https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/ - 
+				- Environments for Vanilla Python: https://virtualenv.readthedocs.io/en/latest/
+						- venv module
+							- downsides: 
+								is slower (by not having the app-data seed method),
+								is not as extendable,
+								cannot create virtual environments for arbitrarily installed python versions (and automatically discover these),
+								is not upgrade-able via pip,
+								does not have as rich programmatic API (describe virtual environments without creating them).	
+							- tutorial https://www.youtube.com/watch?v=N5vscPTWKOk
+								virtualenv allows us to manage environments
+									`pip install virtualenv`
+									`pip list` # to see all pip packages
+									`python3 -m venv tutorial-env # create an environment
+									source tutorial-env/bin/activate #set tutorial-env as environment
+									pip install pftools` #install pftools
+									
+							- General: 
+								deactivate - deactivate python environment
+								source <env-name>/bin/activate # activates environment
+									e.g. source tutorial-env/bin/activate 
+								export <varname=value> (export a local environment within a given run of Bash Profile)
+		
+		Q4: Read through user manual to understand how PARFLOW works. 
+		
+		NEXT STEPS (Laura Meeting 09242020): 
+			- Ask for post-processing scripts from Jun and Abe
+			- Do the post-processing for the coming week
+			- Parflowio  (follow the presentation) - COMPLETE
+			- Why do I continue to have issues with my ability to log on - COMPLETE
+			
+			Want to be able to do some work in Python with ParFlow runs
+				1a) Wishita and 2a) SandTank
+				1b -> Make sure your git directories exists on cloud so you can access - COMPLETE (Don't worry too much about it)
+				2b -> download Sand Tank git on personal PC - COMPLETE
+				1c, 2c -> review the parflowio package  to understand capabilities
+				1d, 2d -> ask questions of model(s) -> 
+					a) how much runoff is there (quantified) in a model model run on the surface
+					b) what's the depth to the water table 
+					c) what's the hydraulic gradient across a section
+				2e -> REALLY get into detail with the sandtank and see how it does what it does
+				
+				
+		How to turn a clone into a fork: 
+			https://gist.github.com/jpierson/b6c0815e9dd7078f6b8cc3cb9076ddf4
+			https://github.com/jlord/patchwork/issues/11600
+				^ this is better
+				
+	20200928:
+		Thoughts on downloading and using PFTools:
+			Help:
+				https://grapp1parflow.readthedocs.io/en/latest/python/getting_started.html
+				https://grapp1parflow.readthedocs.io/en/latest/python/getting_started.html
+				https://github.com/HAS-Tools-Fall2020/Course_Materials/blob/master/Assignments/Week2_Python_Install.md
+				https://datatofish.com/pip-uninstall-package/
+				https://phoenixnap.com/kb/install-pip-windows
+				https://stackoverflow.com/questions/60320174/pip-install-raises-error-13-permission-denied-in-conda-env
+				https://docs.python.org/3/library/venv.html
+				
+				
+			Set up Environment:
+				https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+				https://github.com/HAS-Tools-Fall2020/Course_Materials/blob/master/Assignments/Week2_Python_Install.md
+				
+				`conda create --name envname python=3.8
+				conda activate envname`
+				
+			Add Interpreter Path to VSCode (or whatever visual editor)
+				https://code.visualstudio.com/docs/python/environments#_where-the-extension-looks-for-environments
+				This should happen automatically
+				
+			Set up packages (optional, now or later):
+				`conda install -c conda-forge  pandas`
+				pandas, numpy
+				
+			Investigate your packages further 
+				`conda list`
+				OR
+				C:\Users\Juniper\miniconda3\envs\ENV-NAME\Lib\site-packages
+				
+			Add pftools package:
+				nb only works through pipinstall
+				`pip install pftools[all]`
+					This allows for us to use pftools [pfb] 'parflowio'  and [pfsol] 'imageio' packages respectively 
+			
+			Check the contents of pftools modules
+				1) C:\Users\Juniper\miniconda3\envs\Res2\Lib\site-packages
+				2) 
+				__builtins__: Contains a listing of all the built-in attributes that are accessible from the module. Python adds these attributes automatically for you.
+
+				__cached__: Tells you the name and location of the cached file that is associated with the module. The location information (path) is relative to the current Python directory.
+
+				__doc__: Outputs help information for the module, assuming that you’ve actually filled it in. For example, if you type os.__doc__ and press Enter, Python will output the help information associated with the os library.
+
+				__file__: Tells you the name and location of the module. The location information (path) is relative to the current Python directory
+		
+			In Script Add pftools modules
+				from parflow import Run
+				from parflow.tools.fs import get_absolute_path
+				from parflowio.pyParflowio import PFData
+				import numpy as np
+				
+				
+	
+
+
+				
+			
+
+			
+		
+		
+
+			
+			
